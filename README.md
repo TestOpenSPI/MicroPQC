@@ -1,93 +1,113 @@
-# Spuos Nonsecure Kpqc Open
+<p align="right">
+  <a href="README.md">English</a> | <a href="README.ko.md">한국어</a>
+</p>
 
+# SPUOS-NONSECURE
 
+SPUOS-NONSECURE is a **Non-Secure firmware SDK** for an Arm TrustZone-based platform (Nuvoton M2354).  
+The main goal is to **integrate Post-Quantum Cryptography (PQC) at the MCU level**,  
+**validate correctness via KAT**, and **measure performance via benchmarks**.
 
-## Getting started
+- Target: **WSL (Linux) + Arm GNU Toolchain cross-compilation**
+- [Product / platform documentation](doc/en/main.md)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+---
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Environment Setup
 
-## Add your files
+### Requirements
+- WSL2 (Ubuntu, etc.)
+- `make`
+- Arm GNU Toolchain (`arm-none-eabi`)
 
-* [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+### Toolchain path configuration
+Set the cross-compiler path in:
 
+- `scripts/ARM_EABI_TOOLCHAIN.mk`
+
+Example:
+```makefile
+TOOLCHAIN_PREFIX = /opt/arm-gnu-toolchain-*/bin/arm-none-eabi-
 ```
-cd existing_repo
-git remote add origin http://192.168.122.24/dorsalstream/spuos-nonsecure-kpqc-open.git
-git branch -M main
-git push -uf origin main
+
+For more details on Environment Setup, see: [setup.md](doc/en/02.setup.md)
+
+---
+
+## Build
+
+```bash
+make -C applications/helloworld
 ```
 
-## Integrate with your tools
+Clean:
+```bash
+make -C applications/helloworld clean
+```
 
-* [Set up project integrations](http://192.168.122.24/dorsalstream/spuos-nonsecure-kpqc-open/-/settings/integrations)
+Build artifacts are generated under `applications/helloworld/bin/`
 
-## Collaborate with your team
+For more details on Build, see: [build.md](doc/en/03.build.md)
 
-* [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+---
 
-## Test and Deploy
+## Deployment / Integration
 
-Use the built-in continuous integration in GitLab.
+1. Program (flash) the firmware to the board.  
+   - Secure firmware (boot/secure) uses the prebuilt binaries under `secure/`
+   - Non-Secure firmware uses the build output from this repository
+2. Connect to the UART console (port/baudrate may vary depending on board configuration).
+3. After boot, run `help` in the shell to list available commands.
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+For more details on Deployment / Integration, see: [firmware-download.md](doc/en/04.firmware-download.md)
 
-***
+---
 
-# Editing this README
+## How to Run PQC Tests
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Run KAT from the UART shell:
 
-## Suggestions for a good README
+```text
+pqc kat all
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Run benchmarks from the UART shell:
 
-## Name
-Choose a self-explaining name for your project.
+```text
+pqc bench all
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+For more details on KAT and benchmark, see: [examples.md](doc/en/06.examples.md)
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Performance Results
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### Signature
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+| Algorithm | Operation | Stack/RAM (KB) | Time (ms) | Secret Key (bytes) | Public Key (bytes) | Signature (bytes) |
+|---|---|---:|---:|---:|---:|---:|
+| AIMer128F | KeyGen<br>Sign<br>Verify | 8<br>13<br>15 | 28<br>1,817<br>1,150 | 48 | 32 | 5,888 |
+| HAETAE2 | KeyGen<br>Sign<br>Verify | 23<br>81<br>29 | 312<br>3,066<br>47 | 1,408 | 992 | 1,474 |
+| ML-DSA-44 (Dilithium2) | KeyGen<br>Sign<br>Verify | 37<br>51<br>36 | 71<br>334<br>80 | 2,560 | 1,312 | 2,420 |
+| SLH-DSA-SHAKE128F (Spincs128F) | KeyGen<br>Sign<br>Verify | 3<br>3<br>3 | 3,138<br>72,736<br>4,583 | 64 | 32 | 17,088 |
+| FN-DSA-512 (FALCON) | KeyGen<br>Sign<br>Verify | 17<br>42<br>4 | 9,807<br>2,245<br>13 | 1,281 | 897 | 690 |
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### Key Exchange (KEM)
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+| Algorithm | Operation | Stack/RAM (KB) | Time (ms) | Secret Key (bytes) | Public Key (bytes) | Ciphertext (bytes) |
+|---|---|---:|---:|---:|---:|---:|
+| ML-KEM-512 (KYBER512) | KeyGen<br>Encaps<br>Decaps | 6<br>8<br>9 | 23<br>24<br>19 | 1,632 | 800 | 768 |
+| NTRU+768 | KeyGen<br>Encaps<br>Decaps | 9<br>9<br>15 | 14<br>18<br>13 | 2,337 | 1,152 | 1,152 |
+| SMAUG-T1 | KeyGen<br>Encaps<br>Decaps | 10<br>12<br>13 | 39<br>38<br>44 | 832 | 672 | 672 |
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+---
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## Documentation
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+- Entry point: `.md` files under `doc/en/`
+- Refer to the docs for product/platform architecture, flashing steps, memory layout, and module descriptions.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+---
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+The codes and the specifications are under the MIT license.

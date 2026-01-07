@@ -1,0 +1,65 @@
+EXT_MODULE = freertos
+
+ifeq ($(CPU), x86_64)
+    EXT_SRC_ROOT = $(FREERTOSDIR)
+
+    EXT_INCL += -I$(APPDIR)/include
+
+    EXT_INCL += -I$(EXT_SRC_ROOT)/include
+    EXT_INCL += -I$(EXT_SRC_ROOT)/portable/ThirdParty/GCC/Posix
+    EXT_INCL += -I$(EXT_SRC_ROOT)/portable/ThirdParty/GCC/Posix/utils
+    
+    EXT_CSRC += $(wildcard ${EXT_SRC_ROOT}/*.c)
+    # EXT_CSRC += $(EXT_SRC_ROOT)/portable/MemMang/heap_3.c
+    # bccho, 2023-10-13, heap_3 --> heap_4
+    EXT_CSRC += $(EXT_SRC_ROOT)/portable/MemMang/heap_4.c
+    EXT_CSRC += $(EXT_SRC_ROOT)/portable/ThirdParty/GCC/Posix/port.c
+    EXT_CSRC += $(EXT_SRC_ROOT)/portable/ThirdParty/GCC/Posix/utils/wait_for_event.c
+else
+    EXT_SRC_ROOT = $(FREERTOSDIR)
+    ifneq (,$(wildcard $(EXT_SRC_ROOT)/portable/GCC/$(FREERTOS_DEV_ARM)/non_secure/*))
+    FREERTOS_PORT_DIR = $(EXT_SRC_ROOT)/portable/GCC/$(FREERTOS_DEV_ARM)/non_secure
+    else
+    FREERTOS_PORT_DIR = $(EXT_SRC_ROOT)/portable/GCC/$(FREERTOS_DEV_ARM)
+    endif
+
+    FREERTOS_PORT_CSRC = $(wildcard $(FREERTOS_PORT_DIR)/*.c)
+    FREERTOS_PORT_ASRC = $(wildcard $(FREERTOS_PORT_DIR)/*.S)
+
+    FREERTOS_DIR = $(EXT_SRC_ROOT)
+    FREERTOS_SRC = $(wildcard $(FREERTOS_DIR)/*.c)
+
+    FREERTOS_MEM_DIR = $(EXT_SRC_ROOT)/portable/MemMang
+    #FREERTOS_MEM_SRC = $(FREERTOS_MEM_DIR)/heap_3.c
+    # bccho, 2023-10-13, heap_3 --> heap_4
+    FREERTOS_MEM_SRC = $(FREERTOS_MEM_DIR)/heap_4.c
+
+    ifeq ($(USEMPU),1)
+    FREERTOS_MPU_DIR = $(EXT_SRC_ROOT)/portable/Common
+    FREERTOS_MPU_SRC = $(FREERTOS_MPU_DIR)/mpu_wrappers.c
+    endif
+
+    # to include FreeRTOSConfig.h
+    EXT_INCL += -I$(APPDIR)/include
+
+    EXT_INCL += -I$(EXT_SRC_ROOT)/include
+    EXT_INCL += -I$(FREERTOS_PORT_DIR)
+
+    EXT_CSRC += $(FREERTOS_PORT_CSRC)
+    EXT_CSRC += $(FREERTOS_SRC)
+    EXT_CSRC += $(FREERTOS_MEM_SRC)
+    EXT_CSRC += $(FREERTOS_MPU_SRC)
+
+    EXT_ASRC += $(FREERTOS_PORT_ASRC)
+
+    EXT_CFLAG += -Wno-unused-parameter -Wno-error=attributes
+
+    ifeq ($(TRUSTZONE), nonsecure)
+    EXT_INCL += -I$(FREERTOS_PORT_DIR)/../secure
+    EXT_CFLAG += -DTRUSTZONE_NONSECURE
+    endif
+
+endif
+
+include $(BASE)/makefiles/Makefile.extmod
+

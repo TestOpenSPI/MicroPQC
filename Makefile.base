@@ -1,0 +1,71 @@
+CSRC ?= $(filter-out $(NOCSRC),$(wildcard *.c))
+ASRC ?= $(filter-out $(NOASRC),$(wildcard *.S))
+
+unexport DIRS
+DIRS := $(sort $(abspath $(DIRS)))
+#$(info [ $(DIRS) ])
+
+MODULE ?= $(shell basename $(CURDIR))
+
+.PHONY: all $(DIRS:%=ALL--%) $(DIRS:%=CLEAN--%) FORCE
+
+ccyellow=\e[33m
+cccyan=\e[36m
+ccend=\e[0m
+$(info )
+$(info $(CURDIR:%=>>>> %))
+SHOWDEF?=0
+ifeq ($(SHOWDEF),1)
+BLANK = dummy
+define INDENT
+
+     
+endef
+DEFS = $(filter -D%,$(CFLAGS))
+INCS = $(filter -I%,$(CFLAGS))
+OTHERS = $(filter-out $(INCS),$(filter-out $(DEFS),$(CFLAGS)))
+$(info $(patsubst %,  includes,$(BLANK)) $(addprefix $(INDENT),$(patsubst -I%,%,$(INCS))))
+$(info $(patsubst %,  defines,$(BLANK)) $(addprefix $(INDENT),$(patsubst -D%,%,$(DEFS))))
+$(info $(patsubst %,  others,$(BLANK)) $(OTHERS))
+endif
+
+all: $(BINDIR)/$(MODULE).o
+
+clean:: $(DIRS:%=CLEAN--%)
+
+$(DIRS:%=ALL--%):
+	$(Q)make -C $(@:ALL--%=%)
+
+$(DIRS:%=CLEAN--%):
+	$(Q)make -C $(@:CLEAN--%=%) clean
+
+OBJC := $(CSRC:%.c=$(BINDIR)/$(MODULE)/%.o)
+OBJA := $(ASRC:%.S=$(BINDIR)/$(MODULE)/%.o)
+
+OBJ := $(OBJC) $(OBJA)
+DEP := $(OBJC:.o=.d) $(OBJA:.o=.d)
+
+$(BINDIR)/$(MODULE)/:
+	$(Q)mkdir -p $@
+
+$(BINDIR)/$(MODULE).o $(OBJ): | $(BINDIR)/$(MODULE)/
+
+$(BINDIR)/$(MODULE).o: $(OBJ) | $(DIRS:%=ALL--%)
+	$(Q)$(RM) $@;
+	if [ "$(MODULE)" != "_test" ]; then \
+		if [ "$^" != "" ]; then \
+			echo "[$(cccyan)PL$(ccend)] $(notdir $@) <-- $(notdir $^)"; \
+			$(LD) -r -o $@ $(sort $^); \
+		fi \
+	fi
+
+$(OBJC): $(BINDIR)/$(MODULE)/%.o: %.c
+	@echo "[$(ccyellow)CC$(ccend)] $<"
+	$(Q)$(CC) $(CFLAGS) -MD -MP -c -o $@ $(abspath $<)
+
+$(OBJA): $(BINDIR)/$(MODULE)/%.o: %.S
+	@echo "[$(ccyellow)CC$(ccend)] $<"
+	$(Q)$(CC) $(CFLAGS) -MD -MP -c -o $@ $(abspath $<)
+
+-include $(DEP)
+

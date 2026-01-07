@@ -1,0 +1,50 @@
+include $(BASE)/scripts/ARM_EABI_TOOLCHAIN.mk
+include $(BASE)/scripts/M2354BSP.mk
+
+INCLUDES += -I$(M2354_BSP_PATH)/Device/Nuvoton/M2354/Include \
+			-I$(M2354_BSP_PATH)/StdDriver/inc \
+			-I$(M2354_BSP_PATH)/LCDLib/Include
+
+MCUFLAGS = -mcpu=cortex-m23 -mlittle-endian -mthumb $(FPU_OPT)
+
+ifeq ($(TRUSTZONE),secure)
+    MCUFLAGS += -mcmse
+	ifneq (,$(filter axiocrypto_secure_sdk,$(USEMODULE)))
+    	LDSCRIPT ?= $(CPUDIR)/m2354_ac_s.ld
+	else
+		LDSCRIPT ?= $(CPUDIR)/m2354_s.ld
+	endif
+else
+    LDSCRIPT ?= $(CPUDIR)/m2354.ld
+endif
+
+EXT_MODULES += m2354bsp
+
+RELEASE_EXT_INCLUDES += \
+			-I$$(BSP_PATH)/Device/Nuvoton/M2354/Include \
+			-I$$(BSP_PATH)/StdDriver/inc \
+			-I$$(BSP_PATH)/LCDLib/Include
+
+ifeq ($(OS),cmsis_rtx)
+export CMSIS_DEV_ARM = ARMCM23
+export CMSIS_IRQ_HANDLER = irq_armv8mbl
+endif
+
+ifeq ($(OS),freertos)
+ifeq ($(TRUSTZONE), disable)
+export FREERTOS_DEV_ARM = ARM_CM23_NTZ
+else
+export FREERTOS_DEV_ARM = ARM_CM23
+endif
+INCLUDES += -I$(M2354_BSP_PATH)/CMSIS/Include
+RELEASE_EXT_INCLUDES += -I$$(BSP_PATH)/CMSIS/Include
+endif
+
+ifeq ($(OS),none)
+INCLUDES += -I$(M2354_BSP_PATH)/CMSIS/Include
+endif
+
+$(foreach symbol, \
+	$(shell $(CPUDIR)/get_memory_region_from_partition.sh $(TRUSTZONE) $(SECUREDIR)), \
+	$(eval LD_SYMBOL += $(symbol)))
+

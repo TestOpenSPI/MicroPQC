@@ -1,0 +1,234 @@
+ifndef BOARD
+$(error BOARD is not defined)
+endif
+
+TRUSTZONE ?= disable
+OS        ?= none
+
+BINDIR     = $(APPDIR)/bin/$(BOARD)
+RELDIR     = $(APPDIR)/release/$(BOARD)
+BOARDDIR   = $(BASE)/boards/$(BOARD)
+CPUDIR     = $(BASE)/cpu/$(CPU)
+OSDIR      = $(BASE)/os/$(OS)
+DRIVERDIR  = $(BASE)/drivers
+SYSDIR     = $(BASE)/sys
+DISTDIR    = $(BASE)/dist
+EXTMODIR   = $(BASE)/extmodules
+SECUREDIR  = $(BASE)/secure/$(SECURE_VER)/$(SECURE_FW)/$(SECURE_BANK)
+
+ifeq ($(TRUSTZONE),secure)
+#  ifdef TRUSTZONE_APPLICATION
+#    TRUSTZONE_APPDIR = $(BASE)/applications/$(TRUSTZONE_APPLICATION)
+#    ifeq (,$(wildcard $(TRUSTZONE_APPDIR)/*.c))
+#      $(error need TRUSTZONE_APPLICATION)
+#    endif
+#    INCLUDES += -I$(TRUSTZONE_APPDIR)/include
+#  endif
+
+  TRUSTZONE_CFLAG = TRUSTZONE_SECURE
+ifneq ($(APPLICATION), abm_v2)
+  TRUSTZONE_LINKFLAG = -Wl,--cmse-implib -Wl,--out-implib=$(BINDIR)/cmse_lib.o
+endif
+  
+endif
+
+CMSELIBDIR=$(SECUREDIR)/secure/
+ifeq ($(TRUSTZONE),nonsecure)
+  TRUSTZONE_CFLAG = TRUSTZONE_NONSECURE
+  ifneq ($(BOARD),native)
+    TRUSTZONE_LINKFLAG = $(CMSELIBDIR)/cmse_lib.o
+  endif
+  INCLUDES += -I$(SECUREDIR)/include
+endif
+
+# This include must be placed first because of the M2351BSP
+INCLUDES += -I$(BOARDDIR)/include
+
+include $(BOARDDIR)/Makefile.include
+include $(CPUDIR)/Makefile.include
+include $(OSDIR)/Makefile.include
+include $(SECUREDIR)/Makefile.include
+include $(BASE)/makefiles/Makefile.dep
+include $(BASE)/makefiles/Makefile.export
+include $(wildcard $(patsubst %,%Makefile.include,$(dir $(wildcard $(patsubst %,$(SYSDIR)/%/Makefile, $(USEMODULE))))))
+include $(wildcard $(patsubst %,%Makefile.include,$(dir $(wildcard $(patsubst %,$(DRIVERDIR)/%/Makefile, $(USEMODULE))))))
+include $(BASE)/makefiles/tools.mk
+
+ifeq ($(INCLUDE_TESTLIB),1)
+include $(wildcard $(patsubst %,%Makefile.include,$(dir $(wildcard $(patsubst %,$(SYSDIR)/%/_test/Makefile, $(USEMODULE))))))
+include $(wildcard $(patsubst %,%Makefile.include,$(dir $(wildcard $(patsubst %,$(DRIVERDIR)/%/_test/Makefile, $(USEMODULE))))))
+endif
+
+INCLUDES += -I$(APPDIR)/include
+INCLUDES += -I$(CPUDIR)/include
+INCLUDES += -I$(OSDIR)/include -I$(BASE)/os/include
+
+
+INCLUDES += $(patsubst %,-I%include,$(dir $(wildcard $(patsubst %,$(SYSDIR)/%/Makefile, $(USEMODULE)))))
+INCLUDES += $(patsubst %,-I%include,$(dir $(wildcard $(patsubst %,$(DRIVERDIR)/%/Makefile,$(USEMODULE)))))
+INCLUDES += $(patsubst %,-I%/include,$(EXT_OBJECT_DIR))
+INCLUDES += $(addprefix -I,$(ADDLIBI))
+
+ifeq ($(APPLICATION), abm_v2)
+INCLUDES += -I$(BASE)/application/abm_v2/include
+endif
+
+##############################################
+##############################################
+##############################################
+
+CC = $(TOOLCHAIN_PREFIX)gcc
+LD = $(TOOLCHAIN_PREFIX)ld
+AR = $(TOOLCHAIN_PREFIX)ar
+CP = $(TOOLCHAIN_PREFIX)objcopy
+SZ = $(TOOLCHAIN_PREFIX)size
+OD = $(TOOLCHAIN_PREFIX)objdump
+GDB = $(TOOLCHAIN_PREFIX)gdb
+
+ifeq ($(QUIET),1)
+    Q=@
+    MAKEFLAGS += --no-print-directory --silent
+else
+    Q=
+    MAKEFLAGS += --no-print-directory
+endif
+
+CFLAG_OPT ?= -O2
+
+ifeq ($(MAKECMDGOALS), debug)
+	CFLAG_OPT += -g
+endif
+
+
+CFLAGS += $(MCUFLAGS) \
+			$(CFLAG_OPT) -ffunction-sections -fdata-sections \
+			-Wall -Werror -Wextra \
+			$(INCLUDES) $(addprefix -D, $(DEFINES_BCO) $(TRUSTZONE_CFLAG) $(DEFINES_MODULE))
+
+CARGOFLAGS += --target $(RUST_TOOLCHAIN)
+
+# LDFLAGS = -lc -lm $(LINKFLAGS) $(DEFINES_LDSYMBOL) $(TRUSTZONE_LINKFLAG)
+LDFLAGS = -flto -lc -lm $(LINKFLAGS) $(DEFINES_LDSYMBOL) $(TRUSTZONE_LINKFLAG) -Wl,--no-warn-rwx-segments
+
+
+.PHONY: FORCE
+
+ELFFILE = $(BINDIR)/$(APPLICATION).elf
+HEXFILE = $(ELFFILE:.elf=.hex)
+BINFILE = $(ELFFILE:.elf=.bin)
+LSTFILE = $(ELFFILE:.elf=.lst)
+MAPFILE = $(ELFFILE:.elf=.map)
+
+DIRS   += $(BOARDDIR) $(CPUDIR) $(OSDIR) $(SYSDIR) $(DRIVERDIR) $(SECUREDIR)
+
+ifneq ($(OS),none)
+ifneq ($(OS),linux)
+OSLIB    = $(OS:%=$(BINDIR)/%.o)
+endif
+endif
+
+BASELIB  = $(BINDIR)/board.o $(BINDIR)/application.o $(BINDIR)/secure.o
+EXTLIB   = $(EXT_MODULES:%=$(BINDIR)/%.o)
+DSLIB    = $(BINDIR)/cpu.o $(BINDIR)/os.o $(USEMODULE:%=$(BINDIR)/%.o)
+DSLIB2   = $(filter-out $(OSLIB), $(EXTLIB))
+TESTLIB  = $(BINDIR)/_test.o
+LIBFILE  = $(BINDIR)/lib$(BOARD).a
+OUTFILE = $(BINDIR)/$(APPLICATION).lh.bin
+
+all: $(ELFFILE)
+ifeq ($(CPU), x86_64)
+_LINKOPT = -T$(LDSCRIPT) \
+		-Wl,--gc-sections \
+		-Wl,-Map=$(MAPFILE) \
+		$(LDFLAGS) \
+		$(OSLIB) \
+		-Wl,--start-group \
+		$(addprefix -L,$(dir $(ADDLIBPATH))) \
+		$(addprefix -L,$(dir $(ADDLIBS))) $(addprefix -l:,$(notdir $(ADDLIBS))) \
+		$(BASELIB) \
+		$(BINDIR)/dorsalstream.a -lpthread -ldl\
+		$(_LINKOPT_TESTLIB) \
+		-Wl,--end-group
+else
+_LINKOPT = -T$(LDSCRIPT) $(MCUFLAGS) \
+		-specs=nano.specs \
+		-Wl,--gc-sections \
+		-Wl,-Map=$(MAPFILE) \
+		$(LDFLAGS) \
+		$(OSLIB) $(BINDIR)/dorsalstream.a \
+		-Wl,--wrap=malloc,--wrap=free,--wrap=calloc,--wrap=realloc \
+		-Wl,--start-group \
+		$(addprefix -L,$(dir $(ADDLIBPATH))) \
+		$(addprefix -L,$(dir $(ADDLIBS))) $(addprefix -l:,$(notdir $(ADDLIBS))) \
+		$(BASELIB) \
+		$(_LINKOPT_TESTLIB) \
+		-Wl,--end-group
+endif
+
+$(TESTLIB):
+ifneq ($(TRUSTZONE), secure)
+ifeq ($(INCLUDE_TESTLIB),1)
+	@echo "[PL] $(notdir $@) <-- $(notdir $(wildcard $(BINDIR)/_test/*.o))"
+	$(LD) -r -o $@ $(sort $(BINDIR)/_test/*.o)
+
+_LINKOPT_TESTLIB =	 $(BINDIR)/_test.o
+endif
+endif
+
+$(BINDIR)/dorsalstream.a: $(DSLIB) $(DSLIB2) $(filter-out $(OSLIB), $(EXTLIB))
+	@echo "[AR] $(notdir $@) <-- $(notdir $(DSLIB) $(DSLIB2) $(EXT_OBJECT))"
+	rm -f $(BINDIR)/dorsalstream.a $(BINDIR)/dorsalstream.o
+	$(LD) -r -o $(BINDIR)/dorsalstream.o $(wildcard $(DSLIB)) $(DSLIB2) $(EXT_OBJECT)
+	$(CP) --localize-hidden $(BINDIR)/dorsalstream.o
+	$(AR) rcs $(BINDIR)/dorsalstream.a $(BINDIR)/dorsalstream.o
+
+$(ELFFILE): $(BASELIB) $(DSLIB) $(EXTLIB) $(TESTLIB) $(BINDIR)/dorsalstream.a
+	@echo "[LD] $(notdir $@) <-- $(notdir $(filter %.o %.a, $(_LINKOPT)))"
+	$(Q)$(CC) $(_LINKOPT) -o $@
+	$(Q)$(SZ) $@
+	$(Q)$(CP) -O binary --gap-fill=0xff $@ $(BINFILE)
+	$(Q)$(CP) -O ihex $@ $(HEXFILE)
+ifneq ($(CPU), x86_64)
+	$(Q)$(OD) -SDh $@ > $(LSTFILE)
+endif
+ifeq ($(TRUSTZONE),nonsecure)
+	@echo "[SIGN] $(notdir $(BINDIR)/$(APPLICATION).lh.bin) <-- $(notdir $(BINFILE))"
+	$(Q)$(AXSIGN) -t nu_maker -d -l $(BINFILE) 1 2>&1 > /dev/null && mv $(APPLICATION).bin.00000001.v2.lh.sksig $(BINDIR)/$(APPLICATION).lh.bin
+	@echo "[STAT] $(notdir $(BINDIR)/$(APPLICATION).lh.bin)"
+	$(Q)stat $(BINDIR)/$(APPLICATION).lh.bin
+endif
+ifeq ($(TRUSTZONE),secure)
+	@rm -rf $(CMSELIBDIR)
+	mkdir -p $(CMSELIBDIR)
+	@cp $(ELFFILE) $(HEXFILE) $(BINFILE) $(LSTFILE) $(MAPFILE) $(BINDIR)/cmse_lib.o $(CMSELIBDIR)
+endif
+
+$(ELFFILE): FORCE
+
+$(BINDIR)/application.o:
+	$(Q)DIRS="$(DIRS)" make -C $(APPDIR) -f $(BASE)/scripts/appbuild.mk
+
+$(BINDIR)/application.o: FORCE
+
+$(filter-out $(BINDIR)/application.o, $(BASELIB) $(DSLIB)): $(BINDIR)/application.o
+
+$(EXTLIB): FORCE
+	$(Q)$(MAKE) -f $(BASE)/makefiles/Makefile.$(patsubst $(BINDIR)/%.o,%,$@) all
+
+
+lib: $(LIBFILE)
+
+$(LIBFILE):$(BASELIB) $(DSLIB) $(EXTLIB) $(TESTLIB)
+	@echo "[AR] $(notdir $@) <-- $(notdir $(DSLIB) $(EXTLIB) $(BINDIR)/board.o )"
+	rm -f $(LIBFILE) $(LIBFILE).o
+	$(LD) -r -o $(LIBFILE).o $(wildcard $(DSLIB) $(EXTLIB) $(BINDIR)/board.o )
+	$(CP) --localize-hidden $(LIBFILE).o
+	$(AR) rcs $(LIBFILE) $(LIBFILE).o
+
+
+clean:
+	rm -rf $(BINDIR)
+
+.PHONY: sign upload
+
+

@@ -1,0 +1,22 @@
+include $(BASE)/scripts/FREERTOS.mk
+
+EXT_MODULES += freertos
+
+ifeq ($(CPU), x86_64)
+    INCLUDES += -I$(FREERTOSDIR)/include
+    INCLUDES += -I$(FREERTOSDIR)/portable/ThirdParty/GCC/Posix
+    INCLUDES += -I$(FREERTOSDIR)/portable/ThirdParty/GCC/Posix/utils
+
+    BASELIB += -lpthread
+    LDSCRIPT ?= $(OSDIR)/linux.ld
+else
+    INCLUDES += -I$(FREERTOSDIR)/include
+
+    ifneq (,$(wildcard $(FREERTOSDIR)/portable/GCC/$(FREERTOS_DEV_ARM)/non_secure/*))
+    INCLUDES += -I$(FREERTOSDIR)/portable/GCC/$(FREERTOS_DEV_ARM)/non_secure
+    else
+    INCLUDES += -I$(FREERTOSDIR)/portable/GCC/$(FREERTOS_DEV_ARM)
+    endif
+endif
+
+

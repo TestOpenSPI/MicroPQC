@@ -1,0 +1,49 @@
+export BASE
+export APPLICATION
+export BINDIR
+export BOARD
+export BOARDDIR
+export CPUDIR
+export OS
+export OSDIR
+export INCLUDES
+export USEMODULE
+export EXT_MODULES
+export TRUSTZONE
+export USEMPU
+export USEFPU
+export DISTDIR
+export SYSDIR
+export DRIVERDIR
+export EXTMODIR
+export CERTIFIED
+export NOCSRC
+export SECUREDIR
+export SECURE_VER
+
+export APPDIR
+export RELDIR
+export RELEASE_INCLUDES
+export RELEASE_EXT_INCLUDES
+export RELEASE_DEFINITIONS
+export RELEASE_SRC_MODULES
+export RELEASE_OBJ_MODULES
+export RELEASE_LINKFLAGS
+export RELEASE_TESTSRC
+export RELEASE_TOOLS
+export LDSCRIPT
+export MCUFLAGS
+export RUST_TOOLCHAIN
+export CARGOFLAGS
+export USEMODULE_OBJ
+export LIBFILE
+
+# export TRUSTZONE_APPLICATION     
+export TRUSTZONE_APPDIR
+
+export Q
+export CC
+export LD
+export AR
+export CFLAGS
+export AC
