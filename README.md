@@ -65,7 +65,7 @@ For more details on Deployment / Integration, see: [firmware-download.md](doc/en
 
 ## How to Run PQC Tests
 
-Run KAT from the UART shell:
+Run KAT(Known Answer Test) from the UART shell:
 
 ```text
 pqc kat all
