@@ -16,8 +16,7 @@ static void remap_vector(void)
 	extern uint32_t __Vectors[];
 	int i;
 
-	for(i=0; i<256; i++)
-	{
+	for (i = 0; i < 256; i++) {
 		__vectors_in_ram[i] = __Vectors[i];
 	}
 	__disable_irq();

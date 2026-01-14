@@ -78,86 +78,90 @@ int example_axiocrypto_aria()
         return 1;
     }
 
-    if(opmode != OP_MODE_APPROVED_KCMVP && opmode != OP_MODE_NON_APPROVED){
+    if (opmode != OP_MODE_APPROVED_KCMVP && opmode != OP_MODE_NON_APPROVED) {
         printf("FAIL: op mode\n\r");
         return 1;
     }
 
     // printf("encrypt\n\r");
     ret = axiocrypto_allocate_slot(handle, SYM_ARIA, CTX_ATTR_NONE);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_allocate_slot %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_sym_putkey(handle, key, key_len, 0, CTX_ATTR_NONE);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_putkey %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_sym_enc_init(handle, SYM_ARIA, SYM_MODE_CBC, iv, iv_len);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_enc_init %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_sym_enc_update(handle, plain_msg, plain_msg_len, encrypt_msg, &encrypt_msg_len);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_enc_update %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_sym_enc_final(handle, NULL, 0);    
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_enc_final %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_free_slot(handle, SYM_ARIA);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_free_slot %d\n\r", ret);
         return 1;
     }
 
     // printf("decrypt\n\r");
     ret = axiocrypto_allocate_slot(handle, SYM_ARIA, CTX_ATTR_NONE);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_allocate_slot %d\n\r", ret);
         return 1;
     }
+
     ret = axiocrypto_sym_putkey(handle, key, key_len, 0, CTX_ATTR_NONE);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_putkey %d\n\r", ret);
         return 1;
     }
+
     ret = axiocrypto_sym_dec_init(handle, SYM_ARIA, SYM_MODE_CBC, iv, iv_len);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_dec_init %d\n\r", ret);
         return 1;
     }
+
     ret = axiocrypto_sym_dec_update(handle, encrypt_msg, encrypt_msg_len, decrypt_msg, &decrypt_msg_len);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_dec_update %d\n\r", ret);
         return 1;
     }
+
     ret = axiocrypto_sym_dec_final(handle, NULL, 0);    
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_dec_final %d\n\r", ret);
         return 1;
     }
     ret = axiocrypto_free_slot(handle, SYM_ARIA);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_free_slot %d\n\r", ret);
         return 1;
     }
 
-    if(plain_msg_len != decrypt_msg_len){
+    if (plain_msg_len != decrypt_msg_len) {
         printf("FAIL : length\n\r");
         return 1;
     }
 
-    if(memcmp(plain_msg, decrypt_msg, plain_msg_len) != 0){
+    if (memcmp(plain_msg, decrypt_msg, plain_msg_len) != 0) {
         printf("FAIL : message\n\r");
         return 1;
     }
@@ -182,19 +186,19 @@ int example_axiocrypto_hash()
     memset(digest, 0, 32);
 
     ret = axiocrypto_hash_init(handle, HASH_SHA_256);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL : axiocrypto_hash_init\n\r");
         return 1;
     }
         
     ret = axiocrypto_hash_update(handle, msg, msg_len);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL : axiocrypto_hash_update\n\r");
         return 1;
     }
         
     ret = axiocrypto_hash_final(handle, digest, 32);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL : axiocrypto_hash_final\n\r");
         return 1;
     }
@@ -219,7 +223,7 @@ int example_axiocrypto_hmac()
     memset(msg, 0x00, msg_len);
 
     ret = axiocrypto_hmac( HMAC_SHA_256, key, key_len, msg, msg_len, digest, digest_len);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL : axiocrypto_hmac\n\r");
         return 1;
     }
@@ -249,32 +253,32 @@ int example_axiocrypto_ecdsa()
     handle[0] = 1;
 
     ret = axiocrypto_allocate_slot(handle, ASYM_ECDSA_P256, 0);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_allocate_slot %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_asym_genkey(handle, ASYM_ECDSA_P256, rdonly);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_asym_genkey %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_asym_sign(handle, msg, 32, RAW_MSG, sig, &siglen);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_asym_sign %d\n\r", ret);
         return 1;
     }
 
     siglen = 64;
     ret = axiocrypto_asym_verify(handle, msg, 32, RAW_MSG,  sig, siglen);
-    if(ret != CRYPTO_SIG_ACCEPT && ret != CRYPTO_SIG_REJECT){
+    if (ret != CRYPTO_SIG_ACCEPT && ret != CRYPTO_SIG_REJECT) {
         printf("FAIL: axiocrypto_asym_verify %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_asym_getkey(handle, ASYM_ECDSA_P256, sig, 64);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_asym_getkey %d\n\r", ret);
         return 1;
     }
@@ -283,7 +287,7 @@ int example_axiocrypto_ecdsa()
 #endif
 
     ret = axiocrypto_free_slot(handle, ASYM_ECDSA_P256);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_free_slot %d\n\r", ret);
         return 1;
     }
@@ -305,50 +309,50 @@ int example_axiocrypto_ecdh()
     handle1[0] = 2;
 
     ret = axiocrypto_allocate_slot(handle0, ASYM_ECDH_P256, 0);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_allocate_slot %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_allocate_slot(handle1, ASYM_ECDH_P256, 0);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_allocate_slot %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_asym_genkey(handle0, algo, rdonly);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_asym_genkey %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_asym_getkey(handle0, ASYM_ECDH_P256, kt0, 64);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_asym_getkey %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_asym_genkey(handle1, algo, rdonly);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_asym_genkey %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_asym_getkey(handle1, ASYM_ECDH_P256, kt1, 64);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_asym_getkey %d\n\r", ret);
         return 1;
     }
 
 
     ret = axiocrypto_ecdh_computekey(handle0, kt1, 64, key0, 64);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_ecdh_computekey %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_ecdh_computekey(handle1, kt0, 64, key1, 64);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_ecdh_computekey %d\n\r", ret);
         return 1;
     }
@@ -359,12 +363,13 @@ int example_axiocrypto_ecdh()
     } 
 
     ret = axiocrypto_free_slot(handle0, ASYM_ECDH_P256);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_free_slot %d\n\r", ret);
         return 1;
     }
+
     ret = axiocrypto_free_slot(handle1, ASYM_ECDH_P256);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_free_slot %d\n\r", ret);
         return 1;
     }
@@ -379,7 +384,7 @@ int example_axiocrypto_info()
     char versionstr[32] = {0,};
 
     ret = axiocrypto_info(versionstr, sizeof(versionstr), &opmode);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_info %d\n\r", ret);
         return 1;
     }
@@ -394,21 +399,19 @@ int example_axiocrypto_mode(operation_mode_t mode){
     operation_mode_t opmode = OP_MODE_NON_APPROVED;
 
     ret = axiocrypto_info(NULL, 0, &opmode);
-
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_info %d\n\r", ret);
         return 1;
     }
 
-    if(opmode != mode){
+    if (opmode != mode) {
         printf("reboot\n\r");
         ret = axiocrypto_set_mode((uint32_t)mode);
-        if(ret != CRYPTO_SUCCESS){
+        if (ret != CRYPTO_SUCCESS) {
             printf("FAIL: axiocrypto_set_mode %d\n\r", ret);
             return 1;
         }
-    }
-    else{
+    } else {
         printf("Already set  %d\n\r", ret);
     }
 
@@ -424,8 +427,7 @@ int example_axiocrypto_init()
 
     if (ret == CRYPTO_SUCCESS || ret == CRYPTO_ERR_ALREADY_INIT) {
 	    printf("init: OK\n");
-    }
-    else {
+    } else {
 	    printf("init: FAIL, %d, 0x%x, \n\r", ret, ret);
     }
   
@@ -435,53 +437,53 @@ int example_axiocrypto_init()
 void _example_axiocrypto_test()
 {
     int ret = 1;
+
     printf("axiocrypto init\n\r");
-    if(example_axiocrypto_init() != 0){
+    if (example_axiocrypto_init() != 0) {
         goto end;
     }
 
     printf("axiocrypto info\n\r");
-    if(example_axiocrypto_info() != 0){
+    if (example_axiocrypto_info() != 0) {
         goto end;
     }
 
     printf("axiocrypto drbg\n\r");
-    if(example_axiocrypto_drbg() != 0){
+    if (example_axiocrypto_drbg() != 0) {
         goto end;
     }
 
     printf("axiocrypto aria\n\r");
-    if(example_axiocrypto_aria() != 0){
+    if (example_axiocrypto_aria() != 0) {
         goto end;
     }
 
     printf("axiocrypto hash\n\r");
-    if(example_axiocrypto_hash() != 0){
+    if (example_axiocrypto_hash() != 0) {
         goto end;
     }
 
     printf("axiocrypto hmac\n\r");
-    if(example_axiocrypto_hmac() != 0){
+    if (example_axiocrypto_hmac() != 0) {
         goto end;
     }
 
     printf("axiocrypto ecdsa\n\r");
-    if(example_axiocrypto_ecdsa() != 0){
+    if (example_axiocrypto_ecdsa() != 0) {
         goto end;
     }
 
     printf("axiocrypto ecdh\n\r");
-    if(example_axiocrypto_ecdh() != 0){
+    if (example_axiocrypto_ecdh() != 0) {
         goto end;
     }
 
     ret = 0;
 
 end:
-    if(ret == 0){
+    if (ret == 0) {
         printf("success\n\r");
-    }
-    else{
+    } else {
         printf("failed\n\r");
     }
 }
@@ -500,37 +502,30 @@ void _example_axiocrypto_help()
 int _example_axiocrypto_handler(int argc, char *argv[])
 {
 
-    if(argc > 1){
-        if(strcmp(argv[1], "test") == 0){
+    if (argc > 1) {
+        if (strcmp(argv[1], "test") == 0) {
             _example_axiocrypto_test();
-        }
-        else if(strcmp(argv[1], "mode") == 0 && argc > 2){
-            if(strcmp(argv[2], "none") == 0){
+        } else if (strcmp(argv[1], "mode") == 0 && argc > 2) {
+            if (strcmp(argv[2], "none") == 0) {
                 example_axiocrypto_mode(OP_MODE_NON_APPROVED);
-            }
-            else if(strcmp(argv[1], "kcmvp") == 0){
+            } else if(strcmp(argv[1], "kcmvp") == 0) {
                 example_axiocrypto_mode(OP_MODE_APPROVED_KCMVP);
-            }
-            else{
+            } else {
                 printf("unknown mode\n\r");
             }
-        }
-        else if(strcmp(argv[1], "aria_gcm") == 0){
+        } else if (strcmp(argv[1], "aria_gcm") == 0) {
                 example_aria_gcm_test();
-            }
-        else if(strcmp(argv[1], "ks_ecdsa_putkey") == 0){
+        } else if (strcmp(argv[1], "ks_ecdsa_putkey") == 0) {
                 aria_key_storage_example();
-            }
-        else if(strcmp(argv[1], "ks_ecdsa") == 0){
+        } else if (strcmp(argv[1], "ks_ecdsa") == 0) {
                 example_axiocrypto_ecdsa_key();
-            }
-        else{
+        } else {
             _example_axiocrypto_help();
         }
-    }
-    else{
+    } else {
         _example_axiocrypto_help();
     }
+    
     return 0;
 }
 

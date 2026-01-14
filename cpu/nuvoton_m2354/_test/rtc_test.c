@@ -32,8 +32,8 @@ static int _rtc_handler(int argc, char *argv[])
 {
 	struct tm t;
 
-	if(argc > 1){
-		if(strcmp(argv[1], "settime") == 0 && argc == 8){
+	if (argc > 1) {
+		if (strcmp(argv[1], "settime") == 0 && argc == 8) {
 			t.tm_year = strtoul(argv[2], NULL, 10) - 1900,
 			t.tm_mon = strtoul(argv[3], NULL, 10) - 1;
 			t.tm_mday = strtoul(argv[4], NULL, 10);
@@ -47,35 +47,26 @@ static int _rtc_handler(int argc, char *argv[])
 
 			rtc_set(&t);
 			printf("rtc time set success\n\r");
-		}
-		
-		else if (strcmp(argv[1], "setclock") == 0 && argc == 3){
-			if(strcmp(argv[2], "external") == 0){
+		} else if (strcmp(argv[1], "setclock") == 0 && argc == 3){
+			if (strcmp(argv[2], "external") == 0) {
 				rtc_set_clock(RTC_CLOCK_EXTERNAL); // RTC SET EXTERNAL Crystal
 				printf("set external clock\n\r");
-			}
-			else if(strcmp(argv[2], "internal") == 0 && argc == 3){
+			} else if(strcmp(argv[2], "internal") == 0 && argc == 3) {
 				rtc_set_clock(RTC_CLOCK_INTERNAL);
 				printf("set internal clock\n\r");
-			}	
-			else{
+			} else {
 				printf("select internal or external\n\r");
 				return 1;	
 			}
-		}
-
-		else if(strcmp(argv[1], "gettime") == 0){
+		} else if(strcmp(argv[1], "gettime") == 0) {
 			rtc_get(&t);
 			printf("rtc_get: %d-%d-%d %d:%d:%d\n",
 				t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
 				t.tm_hour, t.tm_min, t.tm_sec);
-		}
-
-		else{ 
+		} else { 
 			_example_rtc_help();
 		}
-	}
-	else {
+	} else {
 		_example_rtc_help();
 	}
 	return 0;

@@ -55,12 +55,11 @@ void nscbroker_thread(void *arg)
 	portALLOCATE_SECURE_CONTEXT( 82*1024 );
 	
 	nsc_msg_t *msg = NULL;
-	while(1){
+	while(1) {
 		msg = NULL;
 
 		// pop message
-		if(xQueueReceive(queue, &msg, portMAX_DELAY) == pdPASS )
-		{
+		if (xQueueReceive(queue, &msg, portMAX_DELAY) == pdPASS ) {
 			// execute message
 			extern void *nsc_dispatcher(void *magic, void *, void *param2, void *params);
 #if 0			
@@ -80,7 +79,7 @@ int nscbroker_is_in_task()
 	#if 0
 	printf("nscbroker_is_in_task %p %X %X\n\r", &dummy, stack_limit, stack_base);
 	#endif
-	if(&dummy > (uint32_t*)stack_start && &dummy < (uint32_t*)stack_end)
+	if (&dummy > (uint32_t*)stack_start && &dummy < (uint32_t*)stack_end)
 		return 0;
 	else 
 		return 1;
@@ -91,7 +90,7 @@ void nscbroker_msg_disp(nsc_msg_t *msg)
 	printf("*** nscbroker_msg_disp *** \n\r");
 	printf("*** id %d, ret %p, param_len %d\n\r", msg->id, msg->ret, msg->param_len);
 
-	for(int i = 0 ; i < msg->param_len ; i++){
+	for (int i = 0 ; i < msg->param_len ; i++) {
 		printf("*** param[%d] %p \n\r", i, msg->param[i]);
 	}
 }
@@ -103,7 +102,7 @@ void* nscbroker_run(int num, ...)
 	
 	void *ret = (void *)NSCBROKER_ERROR;
 
-	if(num < 1){
+	if (num < 1) {
 		goto end;
 	}
 
@@ -117,7 +116,7 @@ void* nscbroker_run(int num, ...)
 	s.param_len = num - 1;
 
 	// arguments
-	for(int i = 0 ; i < s.param_len ; i++){
+	for (int i = 0 ; i < s.param_len ; i++) {
 		s.param[i] = va_arg(ap, void*);
 	}
 
@@ -127,7 +126,7 @@ void* nscbroker_run(int num, ...)
 	nscbroker_msg_disp(&s);
 #endif
 
-	if(nscbroker_is_init() == 0 || nscbroker_is_in_task() == 0){
+	if (nscbroker_is_init() == 0 || nscbroker_is_in_task() == 0) {
 		extern void *nsc_dispatcher(void *magic, void *, void *param2, void *params);
 		ret = nsc_dispatcher(NULL, NULL, NULL, (void*)&s);
 	}
@@ -135,23 +134,23 @@ void* nscbroker_run(int num, ...)
 #if defined(OS_FREERTOS)		
 		// create
 		s.sema = xSemaphoreCreateBinary();
-		if(s.sema == NULL){
+		if (s.sema == NULL) {
 			goto end;
 		}
 		xSemaphoreGive(s.sema);
 		
 		// lock
-		if(xSemaphoreTake(s.sema, portMAX_DELAY) != pdPASS){
+		if (xSemaphoreTake(s.sema, portMAX_DELAY) != pdPASS) {
 			goto end;
 		}
 
 		// push msg to securecall thread
 		nsc_msg_t *pmsg = &s;
-		if(xQueueSend(queue, (void*)&pmsg, ( TickType_t )10000) != pdPASS){
+		if (xQueueSend(queue, (void*)&pmsg, ( TickType_t )10000) != pdPASS) {
 			goto end;
 		}
 		// lock  <<== wait
-		if(xSemaphoreTake(s.sema, portMAX_DELAY) != pdPASS){
+		if (xSemaphoreTake(s.sema, portMAX_DELAY) != pdPASS) {
 			goto end;
 		}
 		ret = pmsg->ret;
@@ -175,19 +174,18 @@ int nscbroker_init()
 {
     int ret = 1;
 
-    if(task_id != 0){
+    if (task_id != 0) {
         ret = 2;
         goto end;
     }
 #if defined(OS_FREERTOS)		
     queue = xQueueCreate(16, 4);
-	if(queue == NULL){
+	if (queue == NULL) {
         ret = 3;
 		goto end;
 	}
 
-    if(xTaskCreate(nscbroker_thread, "nscbroker", 256, NULL, configMAX_PRIORITIES - 1, &task_id) != pdTRUE)
-	{
+    if(xTaskCreate(nscbroker_thread, "nscbroker", 256, NULL, configMAX_PRIORITIES - 1, &task_id) != pdTRUE) {
         ret = 3;
 		goto end;
 	}

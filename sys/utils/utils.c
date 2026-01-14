@@ -46,15 +46,15 @@ int hexTobin(const char *hex, uint8_t *bin, int bin_len)
 {
     int len;
 
-    if(hex == NULL || bin == NULL || bin_len <= 0)
+    if (hex == NULL || bin == NULL || bin_len <= 0)
         return -1;
     
     len = strlen(hex);
     
-    if(len % 2 != 0 || len / 2 > bin_len)
+    if (len % 2 != 0 || len / 2 > bin_len)
         return -1;
 
-    if(hex2bin(hex, len, bin) != 0)
+    if (hex2bin(hex, len, bin) != 0)
         return 0;
 
     return len / 2;
@@ -72,7 +72,7 @@ int hex2bin(const char* hex, int hexSize, uint8_t* bin)
         hexSize += 1;
     }
 
-    for(i = 0; i < (hexSize / 2); i++) {
+    for (i = 0; i < (hexSize / 2); i++) {
         if ((rest == 1) && (i == 0)) {
             check_ret = _nibble(hex[0]);
             if (check_ret == -1) {
@@ -101,7 +101,7 @@ int bin2hex(const uint8_t* bin, int binSize, char *hex, int hex_size)
         return -1;
     }
 
-    if(hex_size < binSize * 2 + 1){
+    if (hex_size < binSize * 2 + 1) {
         return -1;
     }
     

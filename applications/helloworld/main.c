@@ -48,18 +48,18 @@ int main(void)
 #endif
 
     CRYPTO_STATUS status = axiocrypto_init(NULL, 0);
-    if(status == CRYPTO_SUCCESS || status == CRYPTO_ERR_ALREADY_INIT){
+    if (status == CRYPTO_SUCCESS || status == CRYPTO_ERR_ALREADY_INIT) {
         char info[36] = {0};
         operation_mode_t opmode;
-        if(axiocrypto_info(info, sizeof(info), &opmode) != CRYPTO_SUCCESS){
+        if (axiocrypto_info(info, sizeof(info), &opmode) != CRYPTO_SUCCESS) {
             printf("AxioCrypto info failed\n");
             goto exit;
         }
         printf("AxioCrypto Version : %s\n", info);
         printf("AxioCrypto Operation Mode : %s\n", opmode == OP_MODE_APPROVED_KCMVP ? "KCMVP Mode" : "Non-Approved Mode");
-        if(opmode != OP_MODE_APPROVED_KCMVP){
+        if (opmode != OP_MODE_APPROVED_KCMVP) {
             printf("Axiocrypto change to KCMVP mode and reset \n");
-            if(axiocrypto_set_mode(OP_MODE_APPROVED_KCMVP) != CRYPTO_SUCCESS){
+            if (axiocrypto_set_mode(OP_MODE_APPROVED_KCMVP) != CRYPTO_SUCCESS) {
                 printf("AxioCrypto set mode failed\n");
                 goto exit;
             }
@@ -80,8 +80,7 @@ int main(void)
 
 exit:
     //  unreachable
-    while (1)
-    {
+    while (1) {
     }
 
     return 0;

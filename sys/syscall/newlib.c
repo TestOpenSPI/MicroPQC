@@ -63,12 +63,9 @@ void *_sbrk(ptrdiff_t incr)
 
     __disable_irq();
 
-    if ((heap_top + incr > &__HeapLimit) || (heap_top + incr < &__HeapBase))
-    {
+    if ((heap_top + incr > &__HeapLimit) || (heap_top + incr < &__HeapBase)) {
         res = (void *)-1;
-    }
-    else
-    {
+    } else {
         res = heap_top;
         heap_top += incr;
     }
@@ -112,10 +109,8 @@ int _read(int fd, char *buf, unsigned int length)
 #include <sys/time.h>
 int _gettimeofday (struct timeval* tp, void* tzvp)
 {
-    // struct timezone* tzp = tzvp;
     (void)tzvp;
-    if (tp)
-    {
+    if (tp) {
         #if defined(OS_FREERTOS)
         uint32_t tick = xTaskGetTickCount();
         /* Ask the host for the seconds since the Unix epoch.  */
@@ -126,8 +121,7 @@ int _gettimeofday (struct timeval* tp, void* tzvp)
 
     /* Return fixed data for the timezone.  */
 #if 0
-    if (tzp)
-    {
+    if (tzp) {
         tzp->tz_minuteswest = 0;
         tzp->tz_dsttime = 0;
     }

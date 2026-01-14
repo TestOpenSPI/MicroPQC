@@ -43,16 +43,14 @@ int isrpipe_init(isrpipe_t *isrpipe, char *buf, size_t bufsize)
 	osSemaphoreId_t *s;
 	s = (osSemaphoreId_t *)(&isrpipe->sema);
 
-    if ((*s = osSemaphoreNew(1, 0, NULL)) == NULL)
-    {
+    if ((*s = osSemaphoreNew(1, 0, NULL)) == NULL) {
         return 1;
     }
 #elif defined(OS_FREERTOS)
 	SemaphoreHandle_t *s;
 	s = (SemaphoreHandle_t *)(&isrpipe->sema);
 
-    if ((*s = xSemaphoreCreateBinary()) == NULL)
-    {
+    if ((*s = xSemaphoreCreateBinary()) == NULL) {
         return 1;
     }
     //xSemaphoreTake(isrpipe->sema, portMAX_DELAY);
@@ -73,15 +71,13 @@ void isrpipe_free(isrpipe_t *isrpipe)
 #if defined(OS_CMSIS_RTX)
 	osSemaphoreId_t *s;
 	s = (osSemaphoreId_t *)(&isrpipe->sema);
-	if (*s)
-	{
+	if (*s)	{
 		osSemaphoreDelete(*s);
 	}
 #elif defined(OS_FREERTOS)
 	SemaphoreHandle_t *s;
 	s = (SemaphoreHandle_t *)(&isrpipe->sema);
-	if (*s)
-	{
+	if (*s)	{
 		vSemaphoreDelete(*s);
 	}
 #elif defined(OS_LINUX)
@@ -105,16 +101,14 @@ int isrpipe_write(isrpipe_t *isrpipe, const char *src, size_t n)
 	osSemaphoreId_t *s;
 	s = (osSemaphoreId_t *)(&isrpipe->sema);
 
-    if (osSemaphoreRelease(*s) != osOK)
-    {
+    if (osSemaphoreRelease(*s) != osOK) {
         return -1;
     }
 
 #elif defined(OS_FREERTOS) && defined(CPU_X86_64)
 	SemaphoreHandle_t *s;
 	s = (SemaphoreHandle_t *)(&isrpipe->sema);
-    if (xSemaphoreGive(*s) != pdPASS)
-    {
+    if (xSemaphoreGive(*s) != pdPASS) {
         return -1;
     }
 
@@ -123,22 +117,17 @@ int isrpipe_write(isrpipe_t *isrpipe, const char *src, size_t n)
 	s = (SemaphoreHandle_t *)(&isrpipe->sema);
 
     // temporary method to check the context is in the ISR
-    if ((__get_IPSR() != 0) || (__get_PRIMASK() != 0))
-    {
+    if ((__get_IPSR() != 0) || (__get_PRIMASK() != 0)) {
         BaseType_t yield = pdFALSE;
-        if (xSemaphoreGiveFromISR(*s, &yield) != pdPASS)
-        {
+        if (xSemaphoreGiveFromISR(*s, &yield) != pdPASS) {
             return -1;
-        }
-        else
-        {
+        } else {
             portYIELD_FROM_ISR(yield);
         }
     }
     else
     {
-        if (xSemaphoreGive(*s) != pdPASS)
-        {
+        if (xSemaphoreGive(*s) != pdPASS) {
             return -1;
         }
     }
@@ -162,16 +151,14 @@ int isrpipe_write_one(isrpipe_t *isrpipe, char c)
 	osSemaphoreId_t *s;
 	s = (osSemaphoreId_t *)(&isrpipe->sema);
 
-    if (osSemaphoreRelease(*s) != osOK)
-    {
+    if (osSemaphoreRelease(*s) != osOK) {
         return -1;
     }
 
 #elif defined(OS_FREERTOS) && defined(CPU_X86_64)
 	SemaphoreHandle_t *s;
 	s = (SemaphoreHandle_t *)(&isrpipe->sema);
-    if (xSemaphoreGive(*s) != pdPASS)
-    {
+    if (xSemaphoreGive(*s) != pdPASS) {
         return -1;
     }
 
@@ -180,22 +167,15 @@ int isrpipe_write_one(isrpipe_t *isrpipe, char c)
 	s = (SemaphoreHandle_t *)(&isrpipe->sema);
 
     // temporary method to check the context is in the ISR
-    if ((__get_IPSR() != 0) || (__get_PRIMASK() != 0))
-    {
+    if ((__get_IPSR() != 0) || (__get_PRIMASK() != 0)) {
         BaseType_t yield = pdFALSE;
-        if (xSemaphoreGiveFromISR(*s, &yield) != pdPASS)
-        {
+        if (xSemaphoreGiveFromISR(*s, &yield) != pdPASS) {
             return -1;
-        }
-        else
-        {
+        } else {
             portYIELD_FROM_ISR(yield);
         }
-    }
-    else
-    {
-        if (xSemaphoreGive(*s) != pdPASS)
-        {
+    } else {
+        if (xSemaphoreGive(*s) != pdPASS) {
             return -1;
         }
     }
@@ -226,23 +206,19 @@ int isrpipe_read(isrpipe_t *isrpipe, char *buffer, size_t count, uint32_t timeou
     s = (sem_t *)(&isrpipe->sema);
 #endif
 
-    while (!(res = tsrb_get(&isrpipe->tsrb, buffer, count)))
-    {
+    while (!(res = tsrb_get(&isrpipe->tsrb, buffer, count))) {
 #if defined(OS_CMSIS_RTX)
-        if (osSemaphoreAcquire(*s, (timeout!=0xFFFFFFFF)?timeout:osWaitForever) != osOK)
-        {
+        if (osSemaphoreAcquire(*s, (timeout!=0xFFFFFFFF)?timeout:osWaitForever) != osOK) {
             res = -1; /* osErrorTimeout, osErrorResource, osErrorParameter, ... */
             break;
         }
 #elif defined(OS_FREERTOS)
-        if (xSemaphoreTake(*s, (timeout!=0xFFFFFFFF)?timeout:portMAX_DELAY) != pdTRUE)
-		{
+        if (xSemaphoreTake(*s, (timeout!=0xFFFFFFFF)?timeout:portMAX_DELAY) != pdTRUE) {
             res = -1;
             break;
         }
 #elif defined(MODULE_SYSTICK)
-        if (timeout != 0xFFFFFFFF)
-		{
+        if (timeout != 0xFFFFFFFF) {
             __NOP();
             current = get_systick();
             if (systick_diff(start, current) > timeout) {

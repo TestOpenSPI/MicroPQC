@@ -26,7 +26,6 @@ int example_aria_gcm_test()
 
 	uint8_t aad_128[16] = {0};
 	uint8_t tag[16] = {0};
-    // uint8_t buf[128] = {0};
 
     uint8_t key[16];
     uint32_t key_len = 16;
@@ -52,32 +51,32 @@ int example_aria_gcm_test()
     axiocrypto_init(NULL, 0);
 
     ret = axiocrypto_info(NULL, 0, &opmode);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_info %d\n\r", ret);
         return 1;
     }
 
-    if(opmode != OP_MODE_APPROVED_KCMVP && opmode != OP_MODE_NON_APPROVED){
+    if (opmode != OP_MODE_APPROVED_KCMVP && opmode != OP_MODE_NON_APPROVED) {
         printf("FAIL: op mode\n\r");
         return 1;
     }
 
     printf("encrypt\n\r");
     ret = axiocrypto_allocate_slot(handle, SYM_ARIA, CTX_ATTR_NONE);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_allocate_slot %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_sym_putkey(handle, key, key_len, 0, CTX_ATTR_NONE);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_putkey %d\n\r", ret);
         return 1;
     }
 
     printf("ARIA GCM mode encryption start\n\r");
 	ret = axiocrypto_sym_enc_GCM(handle, SYM_ARIA, plain_msg, plain_msg_len, aad_128, sizeof(aad_128), tag, sizeof(tag), iv, iv_len, encrypt_msg, &encrypt_msg_len);
-	if(ret != CRYPTO_SUCCESS){
+	if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_enc_GCM %d\n\r", ret);
 		return 1;
     }
@@ -91,27 +90,27 @@ int example_aria_gcm_test()
     hexdump(encrypt_msg, encrypt_msg_len, HEXDUMP_ATTR_NONE);
 
     ret = axiocrypto_free_slot(handle, SYM_ARIA);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_free_slot %d\n\r", ret);
         return 1;
     }
 
     printf("decryption \n\r");
     ret = axiocrypto_allocate_slot(handle, SYM_ARIA, CTX_ATTR_NONE);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_allocate_slot %d\n\r", ret);
         return 1;
     }
 
     ret = axiocrypto_sym_putkey(handle, key, key_len, 0, CTX_ATTR_NONE);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_putkey %d\n\r", ret);
         return 1;
     }
 
     printf("ARIA GCM mode decryption start\n\r");
     ret = axiocrypto_sym_dec_GCM(handle, SYM_ARIA, encrypt_msg, encrypt_msg_len, aad_128, sizeof(aad_128), tag, sizeof(tag), iv, iv_len, decrypt_msg, &decrypt_msg_len);
-	if(ret != CRYPTO_SUCCESS){
+	if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_sym_dec_GCM %d\n\r", ret);
 		return ret;
     }
@@ -126,17 +125,17 @@ int example_aria_gcm_test()
     hexdump(plain_msg, plain_msg_len, HEXDUMP_ATTR_NONE);
 
     ret = axiocrypto_free_slot(handle, SYM_ARIA);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_free_slot %d\n\r", ret);
         return 1;
     }
 
-    if(plain_msg_len != decrypt_msg_len){
+    if (plain_msg_len != decrypt_msg_len) {
         printf("FAIL : length\n\r");
         return 1;
     }
 
-    if(memcmp(plain_msg, decrypt_msg, plain_msg_len) != 0){
+    if (memcmp(plain_msg, decrypt_msg, plain_msg_len) != 0) {
         printf("FAIL : message\n\r");
         return 1;
     }

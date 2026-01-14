@@ -7,9 +7,8 @@ ifeq ($(TRUSTZONE), secure)
 USEMODULE += tsrb
 endif
 
-#ifneq ($(TRUSTZONE), secure)
-#USEMODULE += spiflash
-#endif
+# ifneq ($(TRUSTZONE), secure)
+# USEMODULE += spiflash
+# endif
 
-#CFLAGS += -fshort-wchar -fshort-enums
-
+# CFLAGS += -fshort-wchar -fshort-enums

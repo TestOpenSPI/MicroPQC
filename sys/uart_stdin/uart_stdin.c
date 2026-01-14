@@ -13,8 +13,7 @@ static void uart_stdio_isr(void)
 {
 	unsigned char c;
 
-	if (uart_irq_is_rx(uart_stdio_dev))
-	{
+	if (uart_irq_is_rx(uart_stdio_dev)) {
 		uart_read(uart_stdio_dev, &c, 1);
 		isrpipe_write_one(&stdio_isrpipe, c);
 	}
@@ -31,14 +30,11 @@ void uart_stdin_init(void)
 {
 	/* assume that uart_stdout_init is already done */
 
-	if (isrpipe_init(&stdio_isrpipe, __buf, sizeof(__buf)) != 0)
-	{
+	if (isrpipe_init(&stdio_isrpipe, __buf, sizeof(__buf)) != 0) {
 		printf("uart_stdin: isrpipe_init failed\n");
 	}
 
-// #if !defined(MODULE_PRINTF)
 	setbuf(stdin, 0);
-// #endif
 
 	uart_irq_setup(uart_stdio_dev, UART_IRQ_RX, 0, uart_stdio_isr);
 }
@@ -47,4 +43,3 @@ int uart_stdio_read(unsigned char *buffer, unsigned int length, uint32_t timeout
 {
 	return isrpipe_read(&stdio_isrpipe, (char *)buffer, length, timeout);
 }
-

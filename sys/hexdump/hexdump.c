@@ -48,15 +48,15 @@ static void dump_1(uint32_t * target, int len, uint32_t offset, int attr)
 
     blen = sprintf(buffer, "%04" PRIx32 "  ", offset);
 
-    if (attr & (HEXDUMP_ATTR_DEFAULT|HEXDUMP_ATTR_PRESS|HEXDUMP_ATTR_XCOMMA)) {
-        for (i=0; i<(len/4); i++) {
+    if (attr & (HEXDUMP_ATTR_DEFAULT | HEXDUMP_ATTR_PRESS | HEXDUMP_ATTR_XCOMMA)) {
+        for (i = 0; i < (len / 4); i++) {
             volatile uint32_t val = addr[i];
             c = (uint8_t *)&val;
-            if (attr&HEXDUMP_ATTR_DEFAULT) {
+            if (attr & HEXDUMP_ATTR_DEFAULT) {
                 blen += sprintf(buffer + blen, "%02x %02x %02x %02x ", c[0], c[1], c[2], c[3]);
-            } else if (attr&HEXDUMP_ATTR_PRESS) {
+            } else if (attr & HEXDUMP_ATTR_PRESS) {
                 blen += sprintf(buffer + blen, "%02x%02x%02x%02x", c[0], c[1], c[2], c[3]);
-            } else if (attr&HEXDUMP_ATTR_XCOMMA) {
+            } else if (attr & HEXDUMP_ATTR_XCOMMA) {
                 blen += sprintf(buffer + blen, "0x%02x,0x%02x,0x%02x,0x%02x,", c[0], c[1], c[2], c[3]);
             }
             if (attr & HEXDUMP_ATTR_ASCII) {
@@ -68,7 +68,7 @@ static void dump_1(uint32_t * target, int len, uint32_t offset, int attr)
         }
     }
     else if (attr & HEXDUMP_ATTR_SWAP32) {
-        for (i=0; i<(len/4); i++) {
+        for (i = 0; i < (len / 4); i++) {
             c = (uint8_t *)&addr[i];
             blen += sprintf(buffer + blen, "%08" PRIx32 " ", addr[i]);
             if (attr & HEXDUMP_ATTR_ASCII) {
@@ -85,7 +85,7 @@ static void dump_1(uint32_t * target, int len, uint32_t offset, int attr)
 
     c = (uint8_t *)&addr[i];
     if (attr & (HEXDUMP_ATTR_DEFAULT|HEXDUMP_ATTR_PRESS|HEXDUMP_ATTR_XCOMMA)) {
-        for (i=0; i<(len%4); i++) {
+        for (i = 0; i < (len % 4); i++) {
             if (attr&HEXDUMP_ATTR_DEFAULT) {
                 blen += sprintf(buffer + blen, "%02x ", c[i]);
             } else if (attr&HEXDUMP_ATTR_PRESS) {
@@ -100,13 +100,13 @@ static void dump_1(uint32_t * target, int len, uint32_t offset, int attr)
         buffer[blen] = (attr & HEXDUMP_ATTR_ASCII)?' ':'\0';
     }
     else if (attr & HEXDUMP_ATTR_SWAP32) {
-        if (len%4) {
+        if (len % 4) {
             buffer[blen] = ' ';
-            blen += (2*(4-(len%4)));
+            blen += (2 * (4 - (len % 4)));
             if (attr & HEXDUMP_ATTR_ASCII) {
-                ascii += (4-(len%4));
+                ascii += (4 - (len %4));
             }
-            for (i=(len%4)-1; i>=0; i--) {
+            for (i = (len % 4) - 1; i >= 0; i--) {
                 blen += sprintf(buffer + blen, "%02x", c[i]);
                 if (attr & HEXDUMP_ATTR_ASCII) {
                     *ascii++ = isprint(c[i])?c[i]:'.';
@@ -145,8 +145,7 @@ void hexdump(void *target, size_t len, uint32_t attr)
 
 	if (!attr) {
 		attr = HEXDUMP_ATTR_DEFAULT | HEXDUMP_ATTR_ASCII;
-	}
-	else {
+	} else {
 		_attr = (attr & HEXDUMP_ATTR_ASCII);
 		attr &= ~HEXDUMP_ATTR_ASCII;
 
@@ -158,12 +157,12 @@ void hexdump(void *target, size_t len, uint32_t attr)
 		attr |= _attr;
 	}
 
-	if (len>0x10000) {
+	if (len > 0x10000) {
 		printf("hexdump: too long length\n");
 		return;
 	}
 
-	while (len>=16) {
+	while (len >= 16) {
                 memcpy(aligned_buf, ptr, 16);           // in case target is not 32bit aligned
                 dump_1(aligned_buf, 16, offset, attr);
 
@@ -172,8 +171,7 @@ void hexdump(void *target, size_t len, uint32_t attr)
 		len -= 16;
 	}
 
-	if (len>0)
-	{
+	if (len > 0) {
                 memcpy(aligned_buf, ptr, len);
                 dump_1(aligned_buf, len, offset, attr);
 	}

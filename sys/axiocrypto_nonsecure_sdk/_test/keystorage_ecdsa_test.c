@@ -86,7 +86,7 @@ int aria_key_storage_example()
 
 	printf("context slot memory allocate\n\r");
 	ret = axiocrypto_allocate_slot(handle, ASYM_ECDSA_P256, CTX_ATTR_PERSISTENT);
-	if(ret != CRYPTO_SUCCESS){
+	if (ret != CRYPTO_SUCCESS) {
         printf("Fail: axiocrypto_allocate_slot: %d\r\n", ret);
 		return ret;
     }
@@ -95,7 +95,7 @@ int aria_key_storage_example()
     printf("ECDSA put Private key alrorithm start\n\r");
 	ret = axiocrypto_asym_putkey(handle, ASYM_ECDSA_P256,
         ECDSAP256Kpg_x1, 32, axiocrypto_crc(ECDSAP256Kpg_x1, 32), NULL, 0, 0, CTX_ATTR_PERSISTENT);
-	if(ret != CRYPTO_SUCCESS){
+	if (ret != CRYPTO_SUCCESS) {
         printf("Fail: axiocrypto_asym_putkey: %d\r\n", ret);
 		return ret;
 	}
@@ -109,7 +109,6 @@ int example_axiocrypto_ecdsa_key()
     CRYPTO_STATUS ret;
     ctx_handle_t handle = {0,};
     ctx_handle_t handle1 = {0,};
-    // int rdonly = 0;
     uint8_t msg[32] = {0,};
     uint8_t sig[64] = {0,};
     uint32_t siglen = 64;
@@ -123,13 +122,13 @@ int example_axiocrypto_ecdsa_key()
     // sign
     printf("load keystorage key \r\n");
     ret = axiocrypto_allocate_slot(handle, ASYM_ECDSA_P256, CTX_ATTR_PERSISTENT);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_allocate_slot %d\n\r", ret);
         return 1;
     }
 
 	ret = axiocrypto_asym_sign(handle, msg, sizeof(msg), RAW_MSG, sig, &siglen);
-	if(ret != CRYPTO_SUCCESS){
+	if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_asym_sign %d\n\r", ret);
         return ret;
     }
@@ -142,7 +141,7 @@ int example_axiocrypto_ecdsa_key()
 //==============================================================================
     // verify
     ret = axiocrypto_allocate_slot(handle1, ASYM_ECDSA_P256, CTX_ATTR_NONE);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_allocate_slot %d\n\r", ret);
         return 1;
     }
@@ -152,13 +151,13 @@ int example_axiocrypto_ecdsa_key()
     /*symmetric put Public key algorithm*/
     printf("ECDSA put Public key alrorithm start\n\r");
 	ret = axiocrypto_asym_putkey(handle1, ASYM_ECDSA_P256, NULL, 0, 0, Q, 64, axiocrypto_crc(Q, 64), CTX_ATTR_NONE);
-	if(ret != CRYPTO_SUCCESS){
+	if (ret != CRYPTO_SUCCESS) {
         printf("Fail: axiocrypto_asym_putkey: %d\r\n", ret);
 		return ret;
 	}
 
     ret = axiocrypto_asym_verify(handle1, msg, sizeof(msg), RAW_MSG, sig, siglen);
-    if(ret != CRYPTO_SIG_ACCEPT && ret != CRYPTO_SIG_REJECT){
+    if (ret != CRYPTO_SIG_ACCEPT && ret != CRYPTO_SIG_REJECT) {
         printf("FAIL: axiocrypto_asym_verify %d\n\r", ret); 
         return ret;
     }
@@ -166,7 +165,7 @@ int example_axiocrypto_ecdsa_key()
     printf("Signature verification successful\r\n");
 
     ret = axiocrypto_free_slot(handle1, ASYM_ECDSA_P256);
-    if(ret != CRYPTO_SUCCESS){
+    if (ret != CRYPTO_SUCCESS) {
         printf("FAIL: axiocrypto_free_slot %d\n\r", ret);
         return ret;
     }

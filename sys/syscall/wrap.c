@@ -72,13 +72,6 @@ void *__wrap_realloc(void *p, size_t newsize)
 #if OS_FREERTOS
 	void *pvPortRealloc(void *pv,  size_t newsize);
 	return pvPortRealloc(p, newsize);
-	// void *p2 = pvPortMalloc(newsize);
-	// if(p2 == NULL){
-	// 	return NULL;
-	// }
-	// memcpy(p2, p, newsize);
-    // vPortFree(p);
-	// return p2;
 #elif defined(OS_CMSIS_RTX)
 	return __real_realloc(p, newsize);
 #else

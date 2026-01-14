@@ -6,4 +6,3 @@ void uart_stdout_init(void);
 int uart_stdio_write(const unsigned char *buffer, unsigned int length);
 
 #endif
-
