@@ -2,7 +2,7 @@
   <a href="main.md">English</a> | <a href="../main.md">한국어</a>
 </p>
 
-# SPUOS-NONSECURE
+# MicroPQC
 
 This project is built on Arm TrustZone.
 

@@ -2,11 +2,9 @@
   <a href="README.md">English</a> | <a href="README.ko.md">한국어</a>
 </p>
 
-# SPUOS-NONSECURE
+# MicroPQC
 
-SPUOS-NONSECURE is a **Non-Secure firmware SDK** for an Arm TrustZone-based platform (Nuvoton M2354).  
-The main goal is to **integrate Post-Quantum Cryptography (PQC) at the MCU level**,  
-**validate correctness via KAT**, and **measure performance via benchmarks**.
+MicroPQC is a project that implements **Post-Quantum Cryptography (PQC)** and **Korean PQC (KPQC)** in the **Secure world** of **AxioMicroOS**, our Arm TrustZone–based security solution, and runs **KAT (correctness validation)** and **performance benchmarks** on **Nuvoton M2354**.
 
 - Target: **WSL (Linux) + Arm GNU Toolchain cross-compilation**
 - [Product / platform documentation](doc/en/main.md)
