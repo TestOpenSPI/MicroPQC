@@ -99,12 +99,24 @@ For more details on KAT and benchmark, see: [examples.md](doc/en/06.examples.md)
 
 ---
 
+## Recommended Algorithms
+
+For practical use in microcontroller environments, we recommend the following algorithms considering memory efficiency and execution speed:
+
+| Purpose | NIST PQC Recommended | Korea PQC Recommended | Reason |
+|---|---|---|---|
+| Digital Signature | **ML-DSA-44** | **AIMer128f** | Low memory usage and practical processing speed |
+| Key Exchange | **ML-KEM-512** | **SMAUG-T1** | Minimal stack memory and small key sizes |
+
+---
+
 ## Documentation
 
 - Entry point: `.md` files under `doc/en/`
 - Refer to the docs for product/platform architecture, flashing steps, memory layout, and module descriptions.
 
 ---
+
 
 ## License
 
