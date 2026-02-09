@@ -1,0 +1,14 @@
+export CPU = nuvoton_m2354
+
+# to reduce compile time
+export BSP_SRCS += clk.c sys.c rtc.c fmc.c sc.c uart.c gpio.c i2c.c spi.c crypto.c timer.c qspi.c
+
+ifeq ($(TRUSTZONE), secure)
+USEMODULE += tsrb
+endif
+
+# ifneq ($(TRUSTZONE), secure)
+# USEMODULE += spiflash
+# endif
+
+# CFLAGS += -fshort-wchar -fshort-enums

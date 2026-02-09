@@ -1,0 +1,36 @@
+EXT_MODULE = m2354bsp
+
+EXT_SRC_ROOT = $(M2354_BSP_PATH)
+
+CSRC += $(BSP_SRCS)
+
+ifeq ($(TRUSTZONE), nonsecure)
+CSRC := $(filter-out clk.c sys.c, $(BSP_SRCS))
+endif
+
+# to include partition_M2354.h
+EXT_INCL += -I$(SECUREDIR)/include
+
+ifeq ($(TRUSTZONE), secure)
+EXT_CFLAG += -DTRUSTZONE_SECURE
+endif
+
+ifeq ($(TRUSTZONE), nonsecure)
+EXT_CFLAG += -DTRUSTZONE_NONSECURE
+endif
+
+EXT_INCL += -I$(M2354_BSP_PATH)/Device/Nuvoton/M2354/Include
+EXT_INCL += -I$(M2354_BSP_PATH)/CMSIS/Include
+EXT_INCL += -I$(M2354_BSP_PATH)/StdDriver/inc
+EXT_INCL += -I$(M2354_BSP_PATH)/LCDLib/Include
+
+EXT_CSRC += $(M2354_BSP_PATH)/Device/Nuvoton/M2354/Source/system_M2354.c
+EXT_CSRC += $(M2354_BSP_PATH)/LCDLib/Source/lcdlib.c
+EXT_CSRC += $(patsubst %,$(M2354_BSP_PATH)/StdDriver/src/%, $(CSRC))
+
+EXT_ASRC += $(M2354_BSP_PATH)/Device/Nuvoton/M2354/Source/GCC/startup_M2354.S
+
+EXT_CFLAG += -w -Wno-sign-compare -Wno-error=format
+
+include $(BASE)/makefiles/Makefile.extmod
+

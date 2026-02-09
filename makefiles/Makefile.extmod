@@ -1,0 +1,46 @@
+ccyellow=\e[33m
+cccyan=\e[36m
+ccend=\e[0m
+
+ifndef EXT_MODULE
+$(error EXT_MODULE should be defined)
+endif
+
+ifndef EXT_SRC_ROOT
+$(error EXT_SRC_ROOT should be defined)
+endif
+
+$(info )
+$(info >>>> $(EXT_MODULE))
+
+EXT_OBJ_PATH = $(BINDIR)/$(EXT_MODULE)
+
+EXT_COBJ = $(patsubst $(EXT_SRC_ROOT)/%.c, $(EXT_OBJ_PATH)/%.o, $(EXT_CSRC))
+EXT_AOBJ = $(patsubst $(EXT_SRC_ROOT)/%.S, $(EXT_OBJ_PATH)/%.o, $(EXT_ASRC))
+
+EXT_OBJS = $(EXT_COBJ) $(EXT_AOBJ)
+
+CFLAGS = $(MCUFLAGS) -Os -ffunction-sections -fdata-sections $(EXT_INCL) $(EXT_CFLAG)
+
+AFLAGS = $(MCUFLAGS) -Os -ffunction-sections -fdata-sections $(EXT_INCL) $(EXT_AFLAG)
+
+DEP = $(EXT_OBJS:.o=.d)
+
+all: $(BINDIR)/$(EXT_MODULE).o
+
+$(EXT_COBJ): $(EXT_OBJ_PATH)/%.o: $(EXT_SRC_ROOT)/%.c
+	@mkdir -p $(dir $@)
+	@echo "[$(ccyellow)CC$(ccend)] $(notdir $<)"
+	$(Q)$(CC) $(CFLAGS) -MD -MP -c -o $@ $<
+
+$(EXT_AOBJ): $(EXT_OBJ_PATH)/%.o: $(EXT_SRC_ROOT)/%.S
+	@mkdir -p $(dir $@)
+	@echo "[$(ccyellow)CC$(ccend)] $(notdir $<)"
+	$(Q)$(CC) $(AFLAGS) -MD -MP -c -o $@ $<
+
+$(BINDIR)/$(EXT_MODULE).o: $(EXT_OBJS)
+	echo "[$(cccyan)PL$(ccend)] $(notdir $@) <-- $(notdir $(sort $^))"
+	$(LD) -r -o $@ $(sort $^)
+
+-include $(DEP)
+

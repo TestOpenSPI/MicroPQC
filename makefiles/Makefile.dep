@@ -1,0 +1,76 @@
+# add default module
+USEMODULE += syscall
+USEMODULE += version
+
+ifeq ($(TRUSTZONE),secure)
+    USEMODULE += printf
+    ifneq ($(CERTIFIED),)
+        USEMODULE += entropyhealth
+    endif
+endif
+
+ifeq ($(TRUSTZONE),nonsecure)
+    USEMODULE += nscbroker
+endif
+
+ifeq ($(APPLICATION), abm_v2)
+    USEMODULE += printf
+endif
+
+ifneq ($(OS), linux)
+    ifneq (,$(filter shell,$(USEMODULE)))
+        USEMODULE += uart_stdin uart_stdout
+    endif
+
+    ifneq (,$(filter uart_stdin,$(USEMODULE)))
+        USEMODULE += isrpipe
+    endif
+else
+    USEMODULE += isrpipe
+endif
+
+ifneq (,$(filter snmp,$(USEMODULE)))
+    USEMODULE += lwip_core
+endif
+
+ifneq (,$(filter lwip_core,$(USEMODULE)))
+    USEMODULE += lwip_contrib
+endif
+
+ifneq (,$(filter esp8266,$(USEMODULE)))
+    USEMODULE += at
+endif
+
+ifneq (,$(filter at,$(USEMODULE)))
+    USEMODULE += isrpipe
+endif
+
+ifneq (,$(filter isrpipe,$(USEMODULE)))
+    USEMODULE += tsrb
+endif
+
+ifneq (,$(filter spiflash,$(USEMODULE)))
+    USEMODULE += mtd
+endif
+
+#ifeq ($(TRUSTZONE),secure)
+    #USEMODULE := $(filter-out isrpipe,$(USEMODULE))
+#endif
+
+ifneq (,$(filter freertos cmsis_rtx,$(OS)))
+  ifneq (,$(filter systick,$(USEMODULE)))
+    $(error module systick must not be defined)
+  endif
+endif
+
+DEFINES_BCO         = $(join BOARD_ CPU_ OS_, $(shell echo $(BOARD) $(CPU) $(OS) | tr 'a-z-' 'A-Z_'))
+
+USEMODULE           := $(shell echo $(USEMODULE) | tr ' ' '\n' | awk '!a[$$0]++')
+DEFINES_MODULE      = $(addprefix MODULE_, $(shell echo $(USEMODULE) | tr 'a-z-' 'A-Z_'))
+
+, := ,
+DEFINES_LDSYMBOL    := $(addprefix -Wl$(,)--defsym=, $(LD_SYMBOL))
+
+$(foreach _dir,$(EXT_OBJECT_DIR), $(eval EXT_OBJECT += $(sort $(wildcard $(patsubst %,%/*.o,$(_dir))))))
+
+$(foreach _dir,$(EXT_OBJECT_DIR), $(eval EXT_OBJECT += $(sort $(wildcard $(patsubst %,%/*.a,$(_dir))))))

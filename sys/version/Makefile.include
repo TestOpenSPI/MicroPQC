@@ -1,0 +1,4 @@
+
+BUILD_TIMESTAMP=$(shell date +%Y%m%d:%H%M%S)
+
+CFLAGS += -D__BUILD_TIMESTAMP=\"$(BUILD_TIMESTAMP)\"

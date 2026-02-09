@@ -1,0 +1,13 @@
+
+ifeq ($(CPU),x86_64)
+    ADDLIBS += $(SYSDIR)/axiocrypto_nonsecure_sdk/libaxiocrypto.so
+    NOCSRC += axiocrypto_sdk.c
+else
+ifeq (,$(filter nscbroker,$(USEMODULE)))
+    ADDLIBS += $(SYSDIR)/axiocrypto_nonsecure_sdk/libaxiocrypto_sdk.a
+    NOCSRC += axiocrypto_sdk.c
+endif
+
+endif
+
+

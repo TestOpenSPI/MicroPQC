@@ -1,0 +1,9 @@
+
+ifeq ($(CPU),x86_64)
+    NOCSRC += spiflash.c
+    CFLAGS += -DSPIFLASH_FILENAME=\"${BASE}/drivers/spiflash/spiflash.img\"
+else
+    NOCSRC += spiflash_linux.c
+endif
+
+
